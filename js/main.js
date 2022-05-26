@@ -121,12 +121,13 @@ class Account extends Todo {
 
 	// Adds rapport tasks, chaos gate, adventure island, and ghost ship
 	createDefaultTasks() {
-		this.addDailyTask(new Task('Rapport: Play Instrument', 6));
-		this.addDailyTask(new Task('Rapport: Emote', 6));
-		this.addDailyTask(new Task('Chaos Gate', 1));
-		this.addDailyTask(new Task('Field Boss', 1));
-		this.addDailyTask(new Task('Adventure Island', 1));
-		this.addWeeklyTask(new Task('Ghost Ship', 1));
+		this.addDailyTask(new Task('Rapport: Emote', 6, 0, 'menu_icon_rapport'));
+		this.addDailyTask(new Task('Rapport:Play Instrument', 6, 0, 'menu_icon_rapport'));
+		this.addDailyTask(new Task('Rapport: Emote', 6, 0, 'menu_icon_rapport'));
+
+		this.addWeeklyTask(new Task("Una's Task", 3, 0, "icon_quest_9"));
+		this.addWeeklyTask(new Task("Ghostship", 1, 0, "icon_ghost_ship"));
+
 	}
 }
 class Character extends Todo {
@@ -170,10 +171,25 @@ class Character extends Todo {
 
 	// Adds Una's tasks, Chaos Dungeons, and Guardian Raids daily tasks
 	createDefaultTasks() {
-		this.addDailyTask(new Task("Una's Tasks", 3));
-		this.addDailyTask(new Task('Chaos Dungeons', 2));
-		this.addDailyTask(new Task('Guardian Raids', 2));
-		this.addWeeklyTask(new Task("Una's Tasks", 3));
+		this.addDailyTask(new Task("Guild Donations", 1, 0, "icon_guild_exchange"));
+		this.addDailyTask(new Task("Una's Tasks", 3, 0, "una"));
+		this.addDailyTask(new Task('Chaos Dungeons', 2, 0, "chaos"));
+		this.addDailyTask(new Task('Guardian Raids', 2, 0, "guardian"));
+		this.addDailyTask(new Task("Adventure Island", 1, 0, "adventureisland"));
+		this.addDailyTask(new Task("Field Boss", 1, 0, "icon_field_boss"));
+		this.addDailyTask(new Task("Chaos Gate", 1, 0, "icon_chaos_gate"));
+		this.addDailyTask(new Task("Kalthertz", 1, 0, "island_50015"));
+		this.addDailyTask(new Task("Anguished Isle", 1, 0, "icon_island_of_grief"));
+		this.addDailyTask(new Task("Cradle of the Sea Fermata", 1, 0, "island_50101"));
+		this.addDailyTask(new Task("Festival's Success", 1, 0, "island_50050"));
+
+		// adds weekly tasks
+		this.addWeeklyTask(new Task("Guardian Challenge", 3, 0, "guardian"));
+		this.addWeeklyTask(new Task("Legion Raid - Valtan", 1, 0, "menu_icon_legion_raid_0"));
+		this.addWeeklyTask(new Task("Abyss Raid - Argos", 1, 0, "icon_abyss_raid"));
+		this.addWeeklyTask(new Task("Challenge Abyss Dungeon", 1, 0, "icon_challenge_abyss_dungeon"));
+
+
 	}
 }
 class Task {
@@ -183,7 +199,8 @@ class Task {
 	 * @param {int} count_total Maximum number of completions required
 	 * @param {int} count_progress Current number of completions
 	 */
-	constructor(title, count_total, count_progress = 0) {
+	constructor(title, count_total, count_progress = 0, imgName) {
+		this.imgName = imgName;
 		this.title = title;
 		this.count_total = count_total;
 		this.count_progress = count_progress || 0;
@@ -194,23 +211,37 @@ class Task {
 		return this.title;
 	}
 	setTitle(title) {
+
 		this.title = title;
 
 		UpdateLocalStorage();
 		PopulateCarousel();
 	}
+
+	getImg() {
+		return this.imgName;
+	}
+	setimg(imgName) {
+
+		this.imgName = imgName;
+
+	}
+
 	getCountTotal() {
 		return this.count_total;
 	}
+
 	setCountTotal(count_total) {
 		this.count_total = count_total;
 
 		UpdateLocalStorage();
 		PopulateCarousel();
 	}
+
 	getCountProgress() {
 		return this.count_progress;
 	}
+
 	setCountProgress(count_progress) {
 		this.count_progress = count_progress;
 
@@ -230,6 +261,7 @@ class Task {
 
 		UpdateLocalStorage();
 	}
+
 	equals(target_task) {
 		return (
 			this.title == target_task.title &&
@@ -408,7 +440,7 @@ const GenerateTasksHTML = (view, tasks, index) => {
 		.map((task) => {
 			return `
       <li class="task ${view} ${task.count_progress == task.count_total ? 'complete' : ''}" data-card-id="${index}">
-        <p>${task.title}</p>
+	  <p style="display: flex;" ><img loading="lazy" src="../img/icon/${task.imgName}.png" alt="" width="20" height="20" style="margin-right: 10px;">${task.title}</p>
         <progress max="${task.count_total}" value="${task.count_progress}"></progress>
       </li>
     `;
@@ -569,23 +601,21 @@ const CheckForReset = (current_time, compare_time) => {
 	console.log('Checking for reset...');
 	console.log(`- Last visit longer than a week: ${current_time - compare_time > week_seconds}`);
 	console.log(
-		`- Weekly reset occurred between last activity and current time: ${
-			compare_time % week_seconds < reset_time && current_time % week_seconds > reset_time
+		`- Weekly reset occurred between last activity and current time: ${compare_time % week_seconds < reset_time && current_time % week_seconds > reset_time
 		}`
 	);
 	console.log(`- Last visit longer than a day: ${current_time - compare_time > day_seconds}`);
 	console.log(
-		`- Daily reset occurred between last activity and current time: ${
-			compare_time % day_seconds < reset_time && current_time % day_seconds > reset_time
+		`- Daily reset occurred between last activity and current time: ${compare_time % day_seconds < reset_time && current_time % day_seconds > reset_time
 		}`
 	);
 
 	// Reset everything if it has been more than 1 week since last visit
 	if (
 		current_time -
-			(current_time % week_seconds < reset_time
-				? (current_time % week_seconds) + week_seconds - reset_time
-				: (current_time % week_seconds) - reset_time) >
+		(current_time % week_seconds < reset_time
+			? (current_time % week_seconds) + week_seconds - reset_time
+			: (current_time % week_seconds) - reset_time) >
 		compare_time
 	) {
 		ResetWeeklyTasks();
@@ -595,9 +625,9 @@ const CheckForReset = (current_time, compare_time) => {
 	// has happened inbetween
 	else if (
 		current_time -
-			(current_time % day_seconds < reset_time
-				? (current_time % day_seconds) + day_seconds - reset_time
-				: (current_time % day_seconds) - reset_time) >
+		(current_time % day_seconds < reset_time
+			? (current_time % day_seconds) + day_seconds - reset_time
+			: (current_time % day_seconds) - reset_time) >
 		compare_time
 	) {
 		ResetDailyTasks();
@@ -635,10 +665,10 @@ const GenerateCreateCharacterForm = () => {
         <p>Select your character's class.</p>
         <section class="class-selection">
           ${class_list
-						.map((job) => {
-							return GenerateClassButtonHTML(job);
-						})
-						.join('')}
+			.map((job) => {
+				return GenerateClassButtonHTML(job);
+			})
+			.join('')}
         </section>
         <input type="submit" value="Add Character" />
       </form>
